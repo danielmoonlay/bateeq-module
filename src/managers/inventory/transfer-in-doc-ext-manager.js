@@ -137,6 +137,7 @@ module.exports = class TransferInDocExtManager {
         return new Promise((resolve, reject) => {
             this._validate(transferInDoc)
                 .then(validTransferInDoc => {
+                    validTransferInDoc._createdDate = new Date();
                     var tasks = [this.transferInDocCollection.insert(validTransferInDoc)];
 
                     for (var item of validTransferInDoc.items) {

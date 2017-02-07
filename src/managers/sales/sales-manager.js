@@ -43,6 +43,80 @@ module.exports = class SalesManager extends BaseManager {
         this.promoManager = new PromoManager(db, user);
     }
 
+    readAll(paging) {
+        var _paging = Object.assign({
+            page: 1,
+            size: 20,
+            order: {},
+            filter: {},
+            select: []
+        }, paging);
+        // var start = process.hrtime();
+
+        var sorting = {
+            "date": 1
+        };
+
+        return this._createIndexes()
+            .then((createIndexResults) => {
+                var query = this._getQuery(_paging);
+                return this.collection
+                    .where(query)
+                    .order(sorting)
+                    .execute()
+            });
+    }
+
+    omsetReportStore(dateFrom, dateTo) {
+        var aggregate = [
+            {
+                "$match": {
+                    date: {
+                        $gte: new Date(dateFrom),
+                        $lte: new Date(dateTo)
+                    },
+                    'isVoid': false
+                }
+            },
+            {
+                "$group": {
+                    _id: { "storeId": "$store._id" },
+                    store: { "$min": "$store" },
+                    grandTotal: { $sum: "$grandTotal" },
+                    count: { $sum: "$totalProduct" }
+                }
+            }, {
+                "$sort": { "grandTotal": -1, }
+            }
+        ]
+
+        return this.collection.aggregate(aggregate);
+    }
+
+    omsetReportPos(dateFrom, dateTo) {
+        var aggregate = [
+            {
+                "$match": {
+                    date: {
+                        $gte: new Date(dateFrom),
+                        $lte: new Date(dateTo)
+                    },
+                    'isVoid': false
+                }
+            },
+            {
+                "$group": {
+                    _id: { "salesCategory": "$store.salesCategory", "storeCategory": "$store.storeCategory", "onlineoffline": "$store.online-offline" },
+                    grandTotal: { $sum: "$grandTotal" },
+                    count: { $sum: "$totalProduct" }
+                }
+            }, {
+                "$sort": { "grandTotal": -1, }
+            }
+        ]
+
+        return this.collection.aggregate(aggregate);
+    }
     _createIndexes() {
         var dateIndex = {
             name: `ix_${map.sales.SalesDoc}__updatedDate`,
@@ -150,6 +224,7 @@ module.exports = class SalesManager extends BaseManager {
 
                     var funcSales = (sales, manager) => {
                         return () => {
+                            sales._createdDate = new Date();
                             return manager.insert(sales);
                         }
                     };
@@ -256,8 +331,8 @@ module.exports = class SalesManager extends BaseManager {
                         '$ne': new ObjectId(valid._id)
                     }
                 }, {
-                        code: valid.code
-                    }]
+                    code: valid.code
+                }]
             });
             var getStore;
             var getBank;
@@ -345,6 +420,29 @@ module.exports = class SalesManager extends BaseManager {
                     else {
                         valid.storeId = _store._id;
                         valid.store = _store;
+
+                        var today = new Date();
+                        valid.shift = 0;
+                        if (_store.shifts) {
+                            for (var shift of _store.shifts) {
+
+                                var dateFrom = new Date(this.getUTCStringDate(today) + "T" + this.getUTCStringTime(new Date(shift.dateFrom)));
+                                var dateTo = new Date(this.getUTCStringDate(today) + "T" + this.getUTCStringTime(new Date(shift.dateTo)));
+
+                                if (dateFrom > dateTo) {
+                                    dateFrom.setDate(dateFrom.getDate() - 1);
+                                }
+                                if (dateFrom < today && today < dateTo) {
+                                    valid.shift = parseInt(shift.shift);
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (valid.shift == 0) {
+                            errors["shift"] = "invalid shift";
+                        }
+
                     }
 
                     if (valid.discount == undefined || (valid.discount && valid.discount == '')) {
@@ -694,13 +792,15 @@ module.exports = class SalesManager extends BaseManager {
                                 var index = resultStocks.indexOf(stock);
                                 var item = valid.items[index];
                                 var itemError = {};
-                                if (stock) {
-                                    if (item.quantity > stock.quantity) {
+                                if (!item.isReturn) {
+                                    if (stock) {
+                                        if (item.quantity > stock.quantity) {
+                                            itemError["quantity"] = "Stok Tidak Tersedia";
+                                        }
+                                    }
+                                    else {
                                         itemError["quantity"] = "Stok Tidak Tersedia";
                                     }
-                                }
-                                else {
-                                    itemError["quantity"] = "Stok Tidak Tersedia";
                                 }
                                 itemErrors.push(itemError);
                             }
@@ -733,6 +833,51 @@ module.exports = class SalesManager extends BaseManager {
                     reject(e);
                 })
         });
+    }
+
+    getStringDate(date) {
+        var dd = date.getDate();
+        var mm = date.getMonth() + 1; //January is 0! 
+        var yyyy = date.getFullYear();
+        if (dd < 10) {
+            dd = '0' + dd
+        }
+        if (mm < 10) {
+            mm = '0' + mm
+        }
+        date = yyyy + '-' + mm + '-' + dd;
+        return date;
+    }
+
+    getUTCStringDate(date) {
+        var dd = date.getUTCDate();
+        var mm = date.getUTCMonth() + 1; //January is 0! 
+        var yyyy = date.getUTCFullYear();
+        if (dd < 10) {
+            dd = '0' + dd
+        }
+        if (mm < 10) {
+            mm = '0' + mm
+        }
+        date = yyyy + '-' + mm + '-' + dd;
+        return date;
+    }
+
+    getUTCStringTime(date) {
+        var hh = date.getUTCHours();
+        var mm = date.getUTCMinutes();
+        var ss = date.getUTCSeconds();
+        if (hh < 10) {
+            hh = '0' + hh
+        }
+        if (mm < 10) {
+            mm = '0' + mm
+        }
+        if (ss < 10) {
+            ss = '0' + ss
+        }
+        date = hh + ':' + mm + ':' + ss;
+        return date;
     }
 
 };

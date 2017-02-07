@@ -46,6 +46,26 @@ module.exports = class SalesReturnManager extends BaseManager {
         this.promoManager = new PromoManager(db, user);
     }
 
+    readAll(paging) {
+        var _paging = Object.assign({
+            page: 1,
+            size: 20,
+            order: {},
+            filter: {},
+            select: []
+        }, paging);
+        // var start = process.hrtime();
+
+        return this._createIndexes()
+            .then((createIndexResults) => {
+                var query = this._getQuery(_paging);
+                return this.collection
+                    .where(query)
+                    .orderBy(_paging.order, _paging.asc)
+                    .execute();
+            });
+    }
+
     _createIndexes() {
         var dateIndex = {
             name: `ix_${map.sales.SalesReturnDoc}__updatedDate`,
@@ -103,7 +123,7 @@ module.exports = class SalesReturnManager extends BaseManager {
                         item.isReturn = true;
                         for (var newItem of item.returnItems) {
                             var newSalesItem = new SalesItem(newItem);
-                            newSalesItem.isRetur = false;
+                            newSalesItem.isReturn = false;
                             newSalesItem.returnItems = [];
                             newItems.push(newSalesItem);
                         }
@@ -142,7 +162,7 @@ module.exports = class SalesReturnManager extends BaseManager {
                                         }
                                     }
                                     salesReturn.stamp(this.user.username, 'manager');
-
+                                    salesReturn._createdDate = new Date();
                                     this.collection.insert(salesReturn)
                                         .then(result => {
                                             resolve(result);
@@ -210,8 +230,8 @@ module.exports = class SalesReturnManager extends BaseManager {
                         '$ne': new ObjectId(valid._id)
                     }
                 }, {
-                        code: valid.code
-                    }]
+                    code: valid.code
+                }]
             });
             var getSales;
             var getStore;
@@ -314,6 +334,28 @@ module.exports = class SalesReturnManager extends BaseManager {
                             else {
                                 valid.storeId = _store._id;
                                 valid.store = _store;
+
+                                var today = new Date();
+                                valid.shift = 0;
+                                if (_store.shifts) {
+                                    for (var shift of _store.shifts) {
+
+                                        var dateFrom = new Date(this.getUTCStringDate(today) + "T" + this.getUTCStringTime(new Date(shift.dateFrom)));
+                                        var dateTo = new Date(this.getUTCStringDate(today) + "T" + this.getUTCStringTime(new Date(shift.dateTo)));
+
+                                        if (dateFrom > dateTo) {
+                                            dateFrom.setDate(dateFrom.getDate() - 1);
+                                        }
+                                        if (dateFrom < today && today < dateTo) {
+                                            valid.shift = parseInt(shift.shift);
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if (valid.shift == 0) {
+                                    errors["shift"] = "invalid shift";
+                                }
                             }
 
 
@@ -386,7 +428,7 @@ module.exports = class SalesReturnManager extends BaseManager {
                                     else {
                                         if (_sales) {
                                             for (var salesItem of _sales.items) {
-                                                if (salesItem.itemId.toString() == item.itemId.toString()) {
+                                                if (!salesItem.isReturn && salesItem.itemId.toString() == item.itemId.toString()) {
                                                     if (parseInt(item.quantity) > parseInt(salesItem.quantity)) {
                                                         itemError["quantity"] = "quantity must not be greater than " + salesItem.quantity;
                                                     }
@@ -730,5 +772,53 @@ module.exports = class SalesReturnManager extends BaseManager {
                     reject(e);
                 })
         });
+    }
+
+
+
+
+    getStringDate(date) {
+        var dd = date.getDate();
+        var mm = date.getMonth() + 1; //January is 0! 
+        var yyyy = date.getFullYear();
+        if (dd < 10) {
+            dd = '0' + dd
+        }
+        if (mm < 10) {
+            mm = '0' + mm
+        }
+        date = yyyy + '-' + mm + '-' + dd;
+        return date;
+    }
+
+    getUTCStringDate(date) {
+        var dd = date.getUTCDate();
+        var mm = date.getUTCMonth() + 1; //January is 0! 
+        var yyyy = date.getUTCFullYear();
+        if (dd < 10) {
+            dd = '0' + dd
+        }
+        if (mm < 10) {
+            mm = '0' + mm
+        }
+        date = yyyy + '-' + mm + '-' + dd;
+        return date;
+    }
+
+    getUTCStringTime(date) {
+        var hh = date.getUTCHours();
+        var mm = date.getUTCMinutes();
+        var ss = date.getUTCSeconds();
+        if (hh < 10) {
+            hh = '0' + hh
+        }
+        if (mm < 10) {
+            mm = '0' + mm
+        }
+        if (ss < 10) {
+            ss = '0' + ss
+        }
+        date = hh + ':' + mm + ':' + ss;
+        return date;
     }
 };

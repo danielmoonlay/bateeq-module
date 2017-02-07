@@ -236,7 +236,7 @@ module.exports = class InventoryMovementManager {
         return new Promise((resolve, reject) => {
             this._validate(inventoryMovement)
                 .then(validInventoryMovement => {
-
+                    validInventoryMovement._createdDate = new Date();
                     this.inventoryMovementCollection.insert(validInventoryMovement)
                         .then(id => {
                             resolve(id);
