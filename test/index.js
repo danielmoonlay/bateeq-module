@@ -6,10 +6,8 @@ function test(name, path) {
 
 
 describe('#bateeq-module', function (done) {
-    this.timeout(1000 * 60000);
-    // //auth
-    // test('@auth/account-manager', './auth/account-manager-test');
-    
+    this.timeout(10000 * 60000);
+
     // test('@auth/role-manager', './auth/role-manager-test'); 
     // test('@manager/master/item-manager', './managers/master/item-manager-test');
     // test('@manager/master/material-manager', './managers/master/material-manager-test');
@@ -61,43 +59,58 @@ describe('#bateeq-module', function (done) {
     // test('@manager/card-type-manager', './managers/card-type-manager-test'); 
     // test('@manager/promo-manager', './managers/promo-manager-test');
 
-    // test('@manager/sales-manager', './managers/sales-manager-test');
-    // test('@manager/sales-return-manager', './managers/sales-return-manager-test');
+
+    // test("@etl/dim-branch", "./etl/dim-branch");
+    // test("@etl/fact-penjualan", "./etl/fact-penjualan");
+    // test("@etl/fact-penjualan-summary", "./etl/fact-penjualan-summary");
+    test("@etl/dim-time", "./etl/dim-time");
+
+
+
+    // test("@etl/sales-migration-etl", "./etl/sales-data-etl-test");
+    // test("@etl/items-migration-etl", "./etl/items-migration-etl-test");
+    //2nd
+
+
+
+
+
+
+    // test("@etl/storages-migration-etl", "./etl/storages-migration-etl-test");
+    //1st
+    // test("@etl/stores-migration-etl", "./etl/stores-migration-etl-test");
+    // test("@etl/testPaging-etl", "./etl/pagination-etl-test");
+
+    // test("@etl/item-etl", "./etl/items-etl-pagination-test");
+    // test("@etl/sp-item-etl", "./etl/items-etl-pagination-test");
+    // test("@etl/sales-etl", "./etl/sales-etl-pagination-test");
+    // test("@etl/sp-sales-etl", "./etl/sp-sales-etl-test");
 
     //new unit test 
+    //auth
+    // test('@auth/account-manager', './auth/account-manager-test'); 
+    // test('@auth/role-manager', './auth/role-manager-test');
 
+    // //master
     // test('@managers/master/material', './managers/master/material');
     // test('@managers/master/module', './managers/master/module');
     // test('@managers/master/storage', './managers/master/storage');
     // test('@managers/master/store', './managers/master/store');
     // test('@managers/master/supplier', './managers/master/supplier');
-    // test("@manager/master/bank", "./managers/master/bank");
-    // test("@manager/master/card-type", "./managers/master/card-type");
-    // test("@manager/master/finished-goods", "./managers/master/finished-goods");
-    // test("@manager/master/item", "./managers/master/item");
+    // test("@managers/master/bank", "./managers/master/bank");
+    // test("@managers/master/card-type", "./managers/master/card-type");
+    // test("@managers/master/finished-goods", "./managers/master/finished-goods");
+    // test("@managers/master/item", "./managers/master/item");
+   // test("@managers/master/division", "./managers/master/division");
+    //test('@managers/master/unit", "./managers/master/unit');
 
-
-
-
-
-    //unit test etl -- data migration 
-    // test("@etl/items-migration-etl", "./etl/items-migration-etl-test");
-    // test("@etl/items-data-etl", "./etl/items-data-etl-test");
-    // test("@etl/items-migration-etl", "./etl/items-migration-etl-test");
-    // test("@etl/storages-migration-etl", "./etl/storages-migration-etl-test");
-    // test("@etl/stores-migration-etl", "./etl/stores-migration-etl-test");
-    // test("@etl/storages-data-etl", "./etl/storages-data-etl-test");
-    // test("@etl/stores-data-etl-test", "./etl/stores-data-etl-test");
-
-
-    test("@etl/sales-migration-etl", "./etl/sales-data-etl-test");
-    // test("@etl/items-migration-etl", "./etl/items-migration-etl-test");
-    //2nd
-    // test("@etl/storages-migration-etl", "./etl/storages-migration-etl-test");
-    //1st
-    // test("@etl/stores-migration-etl", "./etl/stores-migration-etl-test");
-    // test("@etl/testPaging-etl", "./etl/pagination-etl-test");
-        // test("@etl/itemPaging-etl", "./etl/items-etl-pagination-test");
+    // // //transaction
+    // // test('@manager/sales-manager', './managers/sales-manager-test');
+    // // test('@manager/sales-return-manager', './managers/sales-return-manager-test');
+    // //test('@manager/efr-tb-bat-manager', './managers/efr-tb-bat-manager-test');
+    // // test('@manager/efr-tb-bbt-manager', './managers/efr-tb-bbt-manager-test');
+    // //test('@manager/efr-kb-rtp-manager', './managers/efr-kb-rtp-manager-test');
+    // //  test("@etl/storages-migration-etl", "./etl/storages-migration-etl-test"); 
 
 
 

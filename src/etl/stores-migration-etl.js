@@ -18,6 +18,7 @@ module.exports = class StoreDataEtl extends BaseManager {
 
         this.collection = this.storeManager.collection;
         // this.adas=1;
+        this.collectionLog = this.db.collection("migration.log");
     }
 
     getDataStores() {
@@ -47,6 +48,10 @@ module.exports = class StoreDataEtl extends BaseManager {
 
     migrateDataStores() {
         return new Promise((resolve, reject) => {
+            var _start = new Date().getTime();
+            var date = new Date();
+
+            this.collectionLog.insert({ "migration": "sql to items.temp ", "_createdDate": date, "_start": date });
 
             var storesSQL = this.getDataStores();
             var storesMongo = this.getStoreMongo();
@@ -57,13 +62,13 @@ module.exports = class StoreDataEtl extends BaseManager {
                 shift = [
                     {
                         "shift": 1,
-                        "dateFrom": new Date("2000-01-01T00:00:00.000Z"),
-                        "dateTo": new Date("2000-01-01T11:59:59.000Z"),
+                        "dateFrom": new Date("2000-01-01T20:00:00.000Z"),
+                        "dateTo": new Date("2000-01-01T08:59:59.000Z"),
                     },
                     {
                         "shift": 2,
-                        "dateFrom": new Date("2000-01-01T12:00:00.000Z"),
-                        "dateTo": new Date("2000-01-01T23:59:59.000Z"),
+                        "dateFrom": new Date("2000-01-01T09:00:00.000Z"),
+                        "dateTo": new Date("2000-01-01T19:59:59.000Z"),
                     }
                 ];
 
@@ -119,13 +124,13 @@ module.exports = class StoreDataEtl extends BaseManager {
                                     "_active": _active,
                                     "_deleted": false,
                                     "_createdBy": "router",
-                                    "_createdDate": new Date(),
+                                    "_createdDate": item2._createdDate,
                                     "_createAgent": "manager",
                                     "_updatedBy": "router",
                                     "_updatedDate": new Date(),
                                     "_updateAgent": "manager",
                                     "code": item.Kd_Cbg,
-                                    "name": item.Nm_Cbg,
+                                    "name": item.Nm_Cbg.trim(),
                                     "description": "",
                                     "salesTarget": item.target_omset_bulan,
                                     "storageId": item2.storage._id,
@@ -137,13 +142,13 @@ module.exports = class StoreDataEtl extends BaseManager {
                                         "_active": _active,
                                         "_deleted": false,
                                         "_createdBy": "router",
-                                        "_createdDate": new Date(),
+                                        "_createdDate": item2.storage._createdDate,
                                         "_createAgent": "manager",
                                         "_updatedBy": "router",
                                         "_updatedDate": new Date(),
                                         "_updateAgent": "manager",
                                         "code": item.Kd_Cbg,
-                                        "name": item.Nm_Cbg,
+                                        "name": item.Nm_Cbg.trim(),
                                         "description": "",
                                         "address": [(item.Alm_Cbg || '').trim().toString(), (item.Kota_Cbg || '').trim().toString()].filter(r => r && r.toString().trim().length > 0).join(" - "),
                                         "phone": [(item.Kontak || '').trim().toString(), (item.Telp || '').trim().toString()].filter(r => r && r.toString().trim().length > 0).join(" - "),
@@ -151,8 +156,9 @@ module.exports = class StoreDataEtl extends BaseManager {
 
                                     "salesCategoryId": {},
                                     "salesCategory": item.jenis_penjualan,
-                                    // "shift": shift,
-                                    "city": item.Kota_Cbg,
+                                    "shifts": item2.shifts,
+                                    // "shifts": shift,
+                                    "city": item.Kota_Cbg.trim(),
                                     "pic": item.Kontak,
                                     "fax": item.FAX,
                                     "openedDate": openedDate,
@@ -170,7 +176,7 @@ module.exports = class StoreDataEtl extends BaseManager {
                             if (update.phone == '') {
                                 update.phone = "-";
                             }
-                            tasks.push(this.collection.update( update, { ordered: false }));
+                            tasks.push(this.collection.update(update, { ordered: false }));
 
                             break;
                         }
@@ -194,7 +200,7 @@ module.exports = class StoreDataEtl extends BaseManager {
                                 "_updatedDate": new Date(),
                                 "_updateAgent": "manager",
                                 "code": item.Kd_Cbg,
-                                "name": item.Nm_Cbg,
+                                "name": item.Nm_Cbg.trim(),
                                 "description": "",
                                 "salesTarget": item.target_omset_bulan,
                                 "storageId": _idStorage,
@@ -213,7 +219,7 @@ module.exports = class StoreDataEtl extends BaseManager {
                                     "_updatedDate": new Date(),
                                     "_updateAgent": "manager",
                                     "code": item.Kd_Cbg,
-                                    "name": item.Nm_Cbg,
+                                    "name": item.Nm_Cbg.trim(),
                                     "description": "",
                                     "address": [(item.Alm_Cbg || '').trim().toString(), (item.Kota_Cbg || '').trim().toString()].filter(r => r && r.toString().trim().length > 0).join(" - "),
                                     "phone": [(item.Kontak || '').trim().toString(), (item.Telp || '').trim().toString()].filter(r => r && r.toString().trim().length > 0).join(" - "),
@@ -221,8 +227,8 @@ module.exports = class StoreDataEtl extends BaseManager {
 
                                 "salesCategoryId": {},
                                 "salesCategory": item.jenis_penjualan,
-                                "shift": shift,
-                                "city": item.Kota_Cbg,
+                                "shifts": shift,
+                                "city": item.Kota_Cbg.trim(),
                                 "pic": item.Kontak,
                                 "fax": item.FAX,
                                 "openedDate": openedDate,
@@ -249,20 +255,23 @@ module.exports = class StoreDataEtl extends BaseManager {
                 // return (tasks);
                 Promise.all(tasks)
                     .then((result) => {
-                        resolve(tasks);
-
+                        var end = new Date();
+                        var _end = new Date().getTime();
+                        var time = _end - _start;
+                        var log = {
+                            "migration": "sql to stores.temp ",
+                            "_createdDate": date,
+                            "_start": date,
+                            "_end": end,
+                            "Execution time": time + ' ms',
+                        };
+                        this.collectionLog.updateOne({ "_start": date }, log);
+                        resolve(result);
                     })
-
                     .catch((e) => {
                         reject(e);
                     })
-
             });
         });
     }
-
-
-
-
-
 }

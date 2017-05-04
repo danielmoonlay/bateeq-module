@@ -134,6 +134,7 @@ module.exports = class TransferOutDocManager {
         return new Promise((resolve, reject) => {
             this._validate(transferOutDoc)
                 .then(validTransferOutDoc => {
+                    validTransferOutDoc._createdDate = new Date();
                     var tasks = [this.transferOutDocCollection.insert(validTransferOutDoc)];
                     
                     for (var item of validTransferOutDoc.items) {

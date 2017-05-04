@@ -11,6 +11,7 @@ inventoryMap.set("efr-kb-rtf", require('./src/managers/inventory/efr-kb-rtf-mana
 inventoryMap.set("efr-kb-rtp", require('./src/managers/inventory/efr-kb-rtp-manager'));
 inventoryMap.set("efr-kb-rtd", require('./src/managers/inventory/efr-kb-rtd-manager'));
 inventoryMap.set("efr-kb-exb", require('./src/managers/inventory/efr-kb-exb-manager'));
+inventoryMap.set("efr-kb-exp", require('./src/managers/inventory/efr-kb-exp-manager'));
 inventoryMap.set("efr-kb-alt", require('./src/managers/inventory/efr-kb-alt-manager'));
 inventoryMap.set("efr-tb-act", require('./src/managers/inventory/efr-tb-act-manager'));
 inventoryMap.set("efr-tb-bat", require('./src/managers/inventory/efr-tb-bat-manager'));
@@ -40,7 +41,7 @@ module.exports = {
         InventoryManager: inventoryMap.get("inventory"),
         InventoryMovementManager: inventoryMap.get("inventory-movement"),
         FinishedGoodsManager: inventoryMap.get("efr-hp-fng"),
-        ExpeditionsManager: inventoryMap.get("efr-kb-exb"),
+        ExpeditionsManager: inventoryMap.get("efr-kb-exp"),
         AlterationOutManager: inventoryMap.get("efr-kb-alt"),
         AlterationInManager: inventoryMap.get("efr-tb-alt"),
         TokoTransferStokManager: inventoryMap.get("efr-kb-rtt"),
@@ -75,17 +76,40 @@ module.exports = {
         SupplierManager: require('./src/managers/master/supplier-manager'),
         StorageManager: require('./src/managers/master/storage-manager'),
         FinishedGoodsManager: require('./src/managers/master/finished-goods-manager'),
-        MaterialManager: require('./src/managers/master/material-manager')
+        MaterialManager: require('./src/managers/master/material-manager'),
+        article: {
+            ArticleMotifManager: require('./src/managers/master/article/article-motif-manager'),
+            ArticleColorManager: require('./src/managers/master/article/article-color-manager')
+        }
     },
     sales: {
         SalesManager: require('./src/managers/sales/sales-manager'),
         SalesReturnManager: require('./src/managers/sales/sales-return-manager'),
-        PromoManager: require('./src/managers/sales/promo-manager')
+        PromoManager: require('./src/managers/sales/promo-manager'),
+        SalesReportManager: require('./src/managers/sales/report-manager')
     },
-    etl: { 
-        itemsMigration:require('./src/etl/items-migration-etl'),
-        storesMigration:require('./src/etl/stores-migration-etl'),
-        storagesMigration:require('./src/etl/storages-migration-etl'),
-        salesMigration:require('./src/etl/sales-migration-etl'),
-    } 
+
+
+    etl: {
+        itemsMigration: require('./src/etl/items-etl'),
+        itemsSpMigration: require('./src/etl/sp-items-etl'),
+        items: require('./src/etl/items-migration-etl'),
+        storesMigration: require('./src/etl/stores-migration-etl'),
+        storagesMigration: require('./src/etl/storages-migration-etl'),
+
+        salesMigration: require('./src/etl/sales-etl'),
+        salesSpMigration: require('./src/etl/sp-sales-etl'),
+
+        factPenjualan: require('./src/etl/fact-penjualan'),
+        factPenjualanSummary: require('./src/etl/fact-penjualan-summary'),
+        dimBranch: require('./src/etl/dim-branch'),
+        dimTime: require('./src/etl/dim-time')
+
+
+
+
+
+    }
+
 }
+

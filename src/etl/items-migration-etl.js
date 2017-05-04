@@ -17,6 +17,7 @@ module.exports = class ItemDataEtl extends BaseManager {
         this.ItemManager = new ItemManager(db, user);
 
         this.collection = this.ItemManager.collection;
+        this.collectionLog = this.db.collection("migration.log");
         // this.adas=1;
     }
 
@@ -25,7 +26,7 @@ module.exports = class ItemDataEtl extends BaseManager {
             sqlConnect.getConnect()
                 .then((connect) => {
                     var request = connect;
-                    request.query("select Barcode,Nm_Product,Size,Harga,Harga1,ro from Produk", function (err, Produk) {
+                    request.query("select * Barcode,Nm_Product,Size,Harga,Harga1,ro from Produk", function (err, Produk) {
                         resolve(Produk);
                     });
                 });
@@ -55,7 +56,7 @@ module.exports = class ItemDataEtl extends BaseManager {
                     if ((!item.ro) || (item.ro.trim() == "-")) {
                         ro = "";
                     } else {
-                        ro = item.ro;
+                        ro = item.ro.trim();
                     };
 
                     var newDataItem = {
@@ -72,7 +73,7 @@ module.exports = class ItemDataEtl extends BaseManager {
                         "_updatedDate": new Date(),
                         "_updateAgent": "manager",
                         "code": item.Barcode,
-                        "name": item.Nm_Product,
+                        "name": item.Nm_Product.trim(),
                         "description": "",
                         "uom": "PCS",
                         "components": [],
@@ -118,7 +119,12 @@ module.exports = class ItemDataEtl extends BaseManager {
 
     migrateDataItems() {
         return new Promise((resolve, reject) => {
+            var _start = new Date().getTime();
+            var date = new Date();
+
+            this.collectionLog.insert({ "migration": "sql to items ", "_createdDate": date, "_start": date });
             var newItem = this.getNewDataItem();
+
             // var dataItem = this.getDataItem();
 
             Promise.all([newItem])
@@ -133,6 +139,17 @@ module.exports = class ItemDataEtl extends BaseManager {
                     }
                     Promise.all(tasks)
                         .then((resultCRUD) => {
+                            var end = new Date();
+                            var _end = new Date().getTime();
+                            var time = _end - _start;
+                            var log = {
+                                "migration": "sql to items ",
+                                "_createdDate": date,
+                                "_start": date,
+                                "_end": end,
+                                "Execution time": time + ' ms',
+                            };
+                            this.collectionLog.updateOne({ "_start": date }, log);
                             resolve(resultCRUD);
                         })
                         .catch((e) => {
@@ -217,5 +234,5 @@ module.exports = class ItemDataEtl extends BaseManager {
                     reject(e);
                 });
         });
-    } 
+    }
 }

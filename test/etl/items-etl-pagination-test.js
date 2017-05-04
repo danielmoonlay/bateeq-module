@@ -1,7 +1,8 @@
 var helper = require("../helper");
 var should = require("should");
 var connect = require("../../src/etl/sqlConnect");
-var ItemsMigration = require("../../src/etl/itemPaging");
+// var ItemsMigration = require("../../src/etl/sp-items-etl");
+var ItemsMigration = require("../../src/etl/items-etl");
 var instanceMigration = null;
 
 before("#00. connect db", function (done) {
@@ -20,62 +21,7 @@ before("#00. connect db", function (done) {
         })
 });
 
-// it("#01. should error when get empty data ", function (done) {
-//     instanceManager.getDataStores({})
-//         .then((id) => {
-//             done();
-//         })
-//         .catch((e) => {
-//             done(e);
-//         })
-// });
-
-// it("#02. should error when data is not Array", function (done) {
-//     instanceManager.getDataStores()
-//         .then((data) => {
-//             data.should.be.instanceof(Array)
-//             done();
-//         })
-//         .catch((e) => {
-//             done(e);
-//         })
-// });
-
-// it("#03. should success when get data ", function (done) {
-//     instanceManager.getDataStores()
-//         .then(() => {
-//             done();
-//         })
-//         .catch((e) => {
-//             done(e);
-//         })
-// });
-// it("#05. should success when get data Stores ", function (done) {
-//     instanceMigration.getDataStores()
-//         .then((data) => {
-//             console.log(data);
-//             done();
-//         })
-
-//         .catch((e) => {
-//             done(e);
-//         })
-// });
-
-
-// it("#05. should success when migrate all data Stores ", function (done) {
-//     instanceMigration.migrateDataStores()
-//         .then((result) => {
-//             // console.log(data);
-//             done();
-//         })
-
-//         .catch((e) => {
-//             done(e);
-//         })
-// });
-
-it("#01. should success when migrate all data Stores ", function (done) {
+it("#01. should success when migrate all data items ", function (done) {
     instanceMigration.getDataItems()
         .then((result) => {
             // console.log(result);

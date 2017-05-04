@@ -175,6 +175,98 @@ module.exports = class SPKBarangManager extends BaseManager {
         });
     }
 
+    readForExpedition(paging) {
+        var _paging = Object.assign({
+            page: 1,
+            size: 20,
+            order: '_id',
+            asc: true
+        }, paging);
+
+        return new Promise((resolve, reject) => {
+            var filter = {
+                _deleted: false,
+                isReceived: false,
+                isDraft:false
+            };
+
+            var query = _paging.keyword ? {
+                '$and': [filter]
+            } : filter;
+
+            if (_paging.keyword) {
+                var regex = new RegExp(_paging.keyword, "i");
+                var filterCode = {
+                    'code': {
+                        '$regex': regex
+                    }
+                };
+                var filterPackingList = {
+                    'packingList': {
+                        '$regex': regex
+                    }
+                };
+                var $or = {
+                    '$or': [filterCode, filterPackingList]
+                };
+
+                query['$and'].push($or);
+            }
+            
+            this.SPKDocCollection
+                .where(query)
+                .page(_paging.page, _paging.size)
+                .orderBy(_paging.order, _paging.asc)
+                .execute()
+                .then(spkDoc => {
+                    resolve(spkDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    readNotReceivedAndDraft(filter) {
+        return new Promise((resolve, reject) => {
+            var query = {
+                _deleted: false,
+                // isReceived: false,
+                // isDraft: false,
+                reference: filter.reference,
+                "source.code": "GDG.01"
+            };
+            var _select = ["code", "packingList",
+                "password"];
+            this.SPKDocCollection.where(query).select(_select).execute()
+                .then((results) => {
+                    resolve(results);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    readByReference(filter) {
+        return new Promise((resolve, reject) => {
+            var  query={
+                _deleted: false, 
+                reference: filter.reference,
+                 "source.code": "GDG.01" 
+            };             
+            var _select = ["code", "packingList",
+                "password", "isReceived"];
+            this.SPKDocCollection.where(query).select(_select).execute()
+                .then((results) => {
+                    resolve(results);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
     getSingleById(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
